@@ -140,7 +140,7 @@ simul_basic <- function(alpha, beta, lambda, theta, color_info, proba_info){
       }
     }
     x[t] <- plogis(theta*(evidence[2] - evidence[1]))
-    choice[t] <- rbern(1, x) + 1 # 2 = red, 1 = blue
+    choice[t] <- rbern(1, x[t]) + 1 # 2 = red, 1 = blue
     evidence_1[t] = evidence[1]
     evidence_2[t] = evidence[2]
   }
@@ -160,7 +160,7 @@ simul_basic <- function(alpha, beta, lambda, theta, color_info, proba_info){
 mu_alpha = 1;
 mu_beta = 0.01;
 mu_lambda = 0;
-mu_theta = 3;
+mu_theta = 1;
 sigma_alpha = 0.1;
 sigma_beta = 0.001;
 sigma_lambda = 0
