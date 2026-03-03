@@ -25,16 +25,23 @@ data <- data %>%
 
 
 # filter the first row
-dat <- data %>% 
-  group_by(ParticipantPrivateID) %>%
-  slice(1) %>% slice(rep(1,50))
-data_duplicate <- bind_rows(data,dat)
+#dat <- data %>% 
+#  group_by(ParticipantPrivateID) %>%
+#  slice(1) %>% slice(rep(1,50))
+#data_duplicate <- bind_rows(data,dat)
 
-# choose rows 50 times randomly
-dat <- data %>%
+# choose rows 60 times randomly
+dat1 <- data %>%
    group_by(ParticipantPrivateID) %>%
-   slice_sample(n=50)
-data_replacement <- bind_rows(data,dat)
+   slice_sample(n=30)
+dat2 <- dat1 %>% mutate(color_1 = recode(color_1, '1' = 2, '2' = 1)) %>% 
+                 mutate(color_2 = recode(color_2, '1' = 2, '2' = 1)) %>% 
+                 mutate(color_3 = recode(color_3, '1' = 2, '2' = 1)) %>% 
+                 mutate(color_4 = recode(color_4, '1' = 2, '2' = 1)) %>% 
+                 mutate(color_5 = recode(color_5, '1' = 2, '2' = 1)) %>% 
+                 mutate(color_6 = recode(color_6, '1' = 2, '2' = 1))
+
+data_replacement <- bind_rows(data,dat1,dat2)
 
 
 # create a sequence
@@ -74,8 +81,6 @@ data_sim <- bind_rows(data,dat1,dat2)
 
 
 # define the data set again 
-data = data_duplicate
-
 data = data_replacement
 
 data = data_sim
@@ -147,24 +152,26 @@ simul_basic <- function(alpha, beta, lambda, theta, color_info, proba_info){
   return(list(choice,evidence_1,evidence_2,x))
 }
 
-# l_obs = log(max(proba) / (1 - max(proba)))
-# mu_alpha = 0.8;
-# mu_beta = 0.25;
-# mu_lambda = 0.1;
-# mu_theta = 3;
-# sigma_alpha = 0.2
-# sigma_beta = 0.2
-# sigma_lambda = 0.02
-# sigma_theta = 0.5
-
+# parameter setting for the ideal observer 
 mu_alpha = 1;
-mu_beta = 0.01;
+mu_beta = 0;
 mu_lambda = 0;
 mu_theta = 1;
-sigma_alpha = 0.1;
-sigma_beta = 0.001;
+sigma_alpha = 0.01;
+sigma_beta = 0.01;
 sigma_lambda = 0
-sigma_theta = 0.05
+sigma_theta = 0.01
+
+# parameter setting from the data observed
+mu_alpha = 1.5;
+mu_beta = 0.2;
+mu_lambda = 0.07;
+mu_theta = 2.7;
+sigma_alpha = 0.8;
+sigma_beta = 0.18;
+sigma_lambda = 0.07;
+sigma_theta = 0.8;
+
 
 ## ## SIMULATION
 choice  <- array(-1, c(N, T_max))
@@ -191,7 +198,7 @@ data_list <- list(
   choice = choice, ## 
   sample = sample
 )
-save(data_list, file = paste0('../results/fits/simulation/data_list', '.rdata'))
+save(data_list, file = paste0('../results/fits/simulation/data_list_rep_observed', '.rdata'))
 
 whichmodel <- 'choice_log_basic';
 
@@ -224,12 +231,12 @@ fit <- model$sample(
 
 
 ## Save results
-save(fit, file = paste0('../results/fits/simulation', '/fit_',whichmodel, '.rdata'))
+save(fit, file = paste0('../results/fits/simulation', '/fit_',whichmodel, '_rep_observed', '.rdata'))
 
 
 
 ## LOAD MODELS FIT
-load(paste0('../results/fits/simulation','/fit_', whichmodel, '_repetition', '.rdata'))
+# load(paste0('../results/fits/simulation','/fit_', whichmodel, '_sim_ideal', '.rdata'))
 
 
 ## Pairs plots
@@ -239,8 +246,10 @@ posterior_df <- as_draws_df(posterior_samples)
 selected_params <- posterior_df[, grepl("^mu", colnames(posterior_df)) & !grepl("^mu_pr", colnames(posterior_df))]
 plot <- mcmc_pairs(selected_params,
                    off_diag_args = list(size = 0.1, alpha=0.1))
-plot_file <- paste0('../results/plots/simulation','/pairs_plot_', whichmodel)
+plot_file <- paste0('../results/plots/simulation','/pairs_plot_', whichmodel,'_rep_observed')
 ggsave(plot, file = paste0(plot_file, ".jpeg"), width = 8, height = 8)
+
+
 
 
 ## Traces
